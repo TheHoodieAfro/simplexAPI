@@ -1,3 +1,5 @@
 key.json
 __pychache__
 venv
+firebase.conf
+data
