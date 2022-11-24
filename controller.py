@@ -1,9 +1,8 @@
 import firebaseService, classificationService
 import jwt
-import datetime
 
-
-from flask import Flask, request, jsonify, make_response
+from functools import wraps
+from flask import Flask, request, jsonify
 
 # Application
 app = Flask(__name__)
@@ -13,22 +12,24 @@ app.config['SECRET_KEY'] = 'POGGERS'
 # Authentication
 @app.route('/api/auth/register', methods=['POST'])
 def register():
-    return jsonify(firebaseService.register(request.json))
+    return jsonify(firebaseService.register(request.form))
 
 @app.route('/api/auth', methods=['POST'])
 def login():
-    auth = request.authorization
+    return jsonify(firebaseService.login(request.json))
 
-    if auth:
-        check = firebaseService.login(auth.username)
-        if auth.username == check:
-            token = jwt.encode({'user': auth.username, 'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=30)}, app.config['SECRET_KEY'])
-
-            return jsonify({'token': token.decode('UTF-8')})
-
-        return make_response(check, 401)
-    
-    return make_response('Authentication is needed', 401)
+def check_token(f):
+    @wraps(f)
+    def wrap(*args,**kwargs):
+        if not request.headers.get('authorization'):
+            return {'message': 'No token provided'},400
+        try:
+            user = firebaseService.verifyToken(request.headers['authorization'])
+            request.user = user
+        except:
+            return {'message':'Invalid token provided.'},400
+        return f(*args, **kwargs)
+    return wrap
 
 # Rankings
 @app.route('/api/ranks', methods=['GET'])
@@ -45,6 +46,7 @@ def getRank(id):
 
 # Models
 @app.route('/api/classificator/simplex', methods=['POST'])
+@check_token
 def useSimplex():
 
     data = request.args.get('data')
@@ -53,6 +55,7 @@ def useSimplex():
     return firebaseService.createRank(classificationService.executeSimplex(data))
 
 @app.route('/api/classificator/knn', methods=['POST'])
+@check_token
 def useKNN():
 
     data = request.args.get('data')
@@ -61,6 +64,7 @@ def useKNN():
     return firebaseService.createRank(classificationService.executeKNN(data))
 
 @app.route('/api/classificator/tree', methods=['POST'])
+@check_token
 def useTree():
 
     data = request.args.get('data')

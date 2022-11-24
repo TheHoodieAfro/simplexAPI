@@ -1,41 +1,59 @@
 import pyrebase
+import firebase_admin
 import time, os
 import json
+
+from firebase_admin import credentials, auth, firestore
+
+cred = credentials.Certificate('firebase/key.json')
+firebase = firebase_admin.initialize_app(cred)
 
 f = open('firebase/firebase.conf', 'r')
 config = json.loads(f.read())
 f.close()
+pirebase = pyrebase.initialize_app(config)
 
-firebase = pyrebase.initialize_app(config)
+pauth = pirebase.auth()
+db = firestore.client()
+bucket = pirebase.storage()
 
-auth = firebase.auth()
-db = firebase.database()
-bucket = firebase.storage()
-
-ranks_collection = db.child('ranks')
+ranks_collection = db.collection('ranks')
 
 # Authentication
-#def register(user):
-#
-#    try:
-#        user = auth.create_user(email=user['email'], display_name=user['username'], password=user['password'])
-#        return {'message': 'success'}
-#    except Exception as e:
-#        return f"An Error Occurred: {e}"
-#    
-#def login(email):
-#
-#    try:
-#        user = auth.get_user_by_email(email)
-#        return user.email
-#    except Exception as e:
-#        return f"An Error Occurred: {e}"
+def register(user):
+    
+    username = user.get('username')
+    email = user.get('email')
+    password = user.get('password')
+    if email is None or password is None or username is None:
+        return {'message': 'Error missing email, password or username'}
+    try:
+        user = auth.create_user(
+               email=email,
+               password=password,
+               display_name=username
+        )
+        return {'message': f'Successfully created user {user.display_name}'}
+    except Exception as e:
+        return f"An Error Occurred: {e}"
+    
+def login(user):
+
+    try:
+        user = pauth.sign_in_with_email_and_password(user['email'], user['password'])
+        return {"token": user['idToken']}
+    except Exception as e:
+        return f"An Error Occurred: {e}"
+    
+def verifyToken(authorization):
+    
+    return auth.verify_id_token(authorization)
 
 # Ranks
 def getRanks():
 
     try:
-        ranks = dict(db.get().val())
+        ranks = [doc.to_dict() for doc in ranks_collection.stream()]
         return ranks
     except Exception as e:
         return f"An Error Occurred: {e}"
@@ -43,8 +61,8 @@ def getRanks():
 def getRank(id):
 
     try:
-        rank = ranks_collection.order_by_child('id').equal_to(id).get().val()
-        return rank
+        rank = ranks_collection.document(id).get()
+        return rank.to_dict()
     except Exception as e:
         return f"An Error Occurred: {e}"
 
@@ -53,7 +71,7 @@ def createRank(rank):
 
     try:
         id = rank['id']
-        ranks_collection.child(id).set(rank)
+        ranks_collection.document(id).set(rank)
         return rank
     except Exception as e:
         return f"An Error Occurred: {e}"
