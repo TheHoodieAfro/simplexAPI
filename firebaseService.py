@@ -18,6 +18,14 @@ def register(user):
         return {'message': 'success'}
     except Exception as e:
         return f"An Error Occurred: {e}"
+    
+def login(email):
+
+    try:
+        user = auth.get_user_by_email(email)
+        return user.email
+    except Exception as e:
+        return f"An Error Occurred: {e}"
 
 # Ranks
 def getRanks():

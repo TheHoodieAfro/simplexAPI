@@ -1,14 +1,34 @@
 import firebaseService, classificationService
+import jwt
+import datetime
 
-from flask import Flask, request, jsonify
+
+from flask import Flask, request, jsonify, make_response
 
 # Application
 app = Flask(__name__)
 
+app.config['SECRET_KEY'] = 'POGGERS'
+
 # Authentication
-@app.route('/api/auth', methods=['POST'])
+@app.route('/api/auth/register', methods=['POST'])
 def register():
     return jsonify(firebaseService.register(request.json))
+
+@app.route('/api/auth', methods=['POST'])
+def login():
+    auth = request.authorization
+
+    if auth:
+        check = firebaseService.login(auth.username)
+        if auth.username == check:
+            token = jwt.encode({'user': auth.username, 'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=30)}, app.config['SECRET_KEY'])
+
+            return jsonify({'token': token.decode('UTF-8')})
+
+        return make_response(check, 401)
+    
+    return make_response('Authentication is needed', 401)
 
 # Rankings
 @app.route('/api/ranks', methods=['GET'])
