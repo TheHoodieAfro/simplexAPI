@@ -2,7 +2,7 @@ import pyrebase
 import time, os
 import json
 
-f = open('firebase.conf', 'r')
+f = open('firebase/firebase.conf', 'r')
 config = json.loads(f.read())
 f.close()
 
@@ -35,7 +35,7 @@ ranks_collection = db.child('ranks')
 def getRanks():
 
     try:
-        ranks = db.get().val()
+        ranks = dict(db.get().val())
         return ranks
     except Exception as e:
         return f"An Error Occurred: {e}"
@@ -43,7 +43,7 @@ def getRanks():
 def getRank(id):
 
     try:
-        rank = ranks_collection.order_by_key().equal_to(id).get().val()
+        rank = ranks_collection.order_by_child('id').equal_to(id).get().val()
         return rank
     except Exception as e:
         return f"An Error Occurred: {e}"
