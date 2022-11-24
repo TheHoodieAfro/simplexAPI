@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+import copy
 
 class simplexClassificator:
   def __init__(self, measure):
@@ -43,7 +44,6 @@ class simplexClassificator:
       if self.measure == 'concentricity':
         
         temp = self.concentricity(MVC, len(MVC)-1)
-        print("concentricidad ", temp, clasification)
       elif self.measure == 'degree':
         temp = self.loopfor(MCC, len(MCC)-1)
 

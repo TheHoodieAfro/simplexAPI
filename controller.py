@@ -24,35 +24,29 @@ def createRank():
     return jsonify(firebaseService.createRank(request.json))
 
 # Models
-def getData(data):
-
-    firebaseService.downloadData(data)
-
-    response = {'message': 'success'}
-    return jsonify(response)
-
 @app.route('/api/classificator/simplex', methods=['POST'])
 def useSimplex():
-    getData(request.args.get('data'))
 
-    response = {'message': 'success'}
-    return jsonify(response)
+    data = request.args.get('data')
+    firebaseService.downloadData(data)
 
-@app.route('/api/classificator/knn', methods=['GET'])
+    return jsonify(classificationService.executeSimplex(data))
+
+@app.route('/api/classificator/knn', methods=['POST'])
 def useKNN():
 
-    getData(request.args.get('data'))
+    data = request.args.get('data')
+    firebaseService.downloadData(data)
 
-    response = {'message': 'success'}
-    return jsonify(response)
+    return jsonify(classificationService.executeKNN(data))
 
-@app.route('/api/classificator/tree', methods=['GET'])
+@app.route('/api/classificator/tree', methods=['POST'])
 def useTree():
 
-    getData(request.args.get('data'))
-    
-    response = {'message': 'success'}
-    return jsonify(response)
+    data = request.args.get('data')
+    firebaseService.downloadData(data)
+
+    return jsonify(classificationService.executeTree(data))
 
 # ???????????????????????
 if __name__ == '__main__':
