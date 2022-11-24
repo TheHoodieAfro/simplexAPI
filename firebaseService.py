@@ -1,37 +1,41 @@
-from firebase_admin import credentials, firestore, initialize_app, auth, storage
+import pyrebase
+import time, os
+import json
 
-cred = credentials.Certificate('key.json')
-default_app = initialize_app(cred, {
-    'storageBucket': 'simplexclassifier.appspot.com'
-})
+f = open('firebase.conf', 'r')
+config = json.loads(f.read())
+f.close()
 
-db = firestore.client()
-bucket = storage.bucket()
+firebase = pyrebase.initialize_app(config)
 
-ranks_collection = db.collection('ranks')
+auth = firebase.auth()
+db = firebase.database()
+bucket = firebase.storage()
+
+ranks_collection = db.child('ranks')
 
 # Authentication
-def register(user):
-
-    try:
-        user = auth.create_user(email=user['email'], display_name=user['username'], password=user['password'])
-        return {'message': 'success'}
-    except Exception as e:
-        return f"An Error Occurred: {e}"
-    
-def login(email):
-
-    try:
-        user = auth.get_user_by_email(email)
-        return user.email
-    except Exception as e:
-        return f"An Error Occurred: {e}"
+#def register(user):
+#
+#    try:
+#        user = auth.create_user(email=user['email'], display_name=user['username'], password=user['password'])
+#        return {'message': 'success'}
+#    except Exception as e:
+#        return f"An Error Occurred: {e}"
+#    
+#def login(email):
+#
+#    try:
+#        user = auth.get_user_by_email(email)
+#        return user.email
+#    except Exception as e:
+#        return f"An Error Occurred: {e}"
 
 # Ranks
 def getRanks():
 
     try:
-        ranks = [doc.to_dict() for doc in ranks_collection.stream()]
+        ranks = db.get().val()
         return ranks
     except Exception as e:
         return f"An Error Occurred: {e}"
@@ -39,8 +43,8 @@ def getRanks():
 def getRank(id):
 
     try:
-        rank = ranks_collection.document(id).get()
-        return rank.to_dict()
+        rank = ranks_collection.order_by_key().equal_to(id).get().val()
+        return rank
     except Exception as e:
         return f"An Error Occurred: {e}"
 
@@ -49,7 +53,7 @@ def createRank(rank):
 
     try:
         id = rank['id']
-        ranks_collection.document(id).set(rank)
+        ranks_collection.child(id).set(rank)
         return rank
     except Exception as e:
         return f"An Error Occurred: {e}"
@@ -57,10 +61,8 @@ def createRank(rank):
 # Data
 def downloadData(data):
 
-    source_blob_name = data
+    bucket.child("data/"+ data).download("", "data/"+ data)
 
-    destination_file_name = "data/"+ data
-
-    bucket = storage.bucket()
-    blob = bucket.blob(source_blob_name)
-    blob.download_to_filename(destination_file_name)
+    while not os.path.exists('data/'+ data):
+        time.sleep(1)
+        print('slept')

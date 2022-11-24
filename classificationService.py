@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 import copy
 import sklearn as sk
+import os
 
 from sklearn.model_selection import train_test_split
 from sklearn.model_selection import cross_val_score
@@ -102,7 +103,8 @@ def executeSimplex(data):
     simplexDegree.fit(X_train, y_train)
 
     print('[+] Validating model')
-    return getResults(simplexDegree, X_test, y_test, False, simplexDegree, "simplexDegree-"+ data)
+    filename, shit = os.path.splitext(data)
+    return getResults(simplexDegree, X_test, y_test, False, simplexDegree, "simplexDegree-"+ filename)
 
 def executeKNN(data):
 
@@ -115,7 +117,8 @@ def executeKNN(data):
     knnHamming.fit(simplexDegree.one_hot_encode(X_train), y_train)
 
     print('[+] Validating model')
-    return getResults(knnHamming, X_test, y_test, True, simplexDegree, "KNN-"+ data)
+    filename, shit = os.path.splitext(data)
+    return getResults(knnHamming, X_test, y_test, True, simplexDegree, "KNN-"+ filename)
 
 def executeTree(data):
 
@@ -128,4 +131,5 @@ def executeTree(data):
     tree.fit(simplexDegree.one_hot_encode(X_train), y_train)
 
     print('[+] Validating model')
-    return getResults(simplexDegree, X_test, y_test, True, simplexDegree, "DecisionTree-"+ data)
+    filename, shit = os.path.splitext(data)
+    return getResults(simplexDegree, X_test, y_test, True, simplexDegree, "DecisionTree-"+ filename)
