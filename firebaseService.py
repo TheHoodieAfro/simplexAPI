@@ -42,7 +42,7 @@ def createRank(rank):
     try:
         id = rank['id']
         ranks_collection.document(id).set(rank)
-        return {"success": True}
+        return rank
     except Exception as e:
         return f"An Error Occurred: {e}"
 

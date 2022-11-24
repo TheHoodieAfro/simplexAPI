@@ -29,7 +29,7 @@ def prepareData(data):
 
     return train_test_split(X, y, test_size=0.4, random_state=0)
 
-def getResults(model, X_test, y_test, good, help):
+def getResults(model, X_test, y_test, good, help, id):
 
     modelList = []
 
@@ -84,34 +84,48 @@ def getResults(model, X_test, y_test, good, help):
         kappa = sk.metrics.cohen_kappa_score(y_result,total_predict)
     except Exception as e:
         kappa = 'ERROR'
+
+    if precision != 'ERROR' and accuracy != 'ERROR' and f1 != 'ERROR' and kappa != 'ERROR':
+        totalPoints = precision + accuracy + f1 + kappa
+    else:
+        totalPoints = 0
     
-    return {"confusionMatrix": {"tp": tp, "fp": fp, "fn": fn, "tn": tn}, "precision": precision, "accuracy": accuracy, "f1": f1, "kappa": kappa}
+    return {"id": id,"confusion_matrix": {"tp": tp, "fp": fp, "fn": fn, "tn": tn}, "precision": precision, "accuracy": accuracy, "f1": f1, "kappa": kappa, "total_points": totalPoints}
    
 def executeSimplex(data):
 
+    print('[+] Processing data')
     X_train, X_test, y_train, y_test = prepareData(data)
 
+    print('[+] Creating and trainning model')
     simplexDegree = sc.simplexClassificator('concentricity')
     simplexDegree.fit(X_train, y_train)
 
-    return getResults(simplexDegree, X_test, y_test, False, simplexDegree)
+    print('[+] Validating model')
+    return getResults(simplexDegree, X_test, y_test, False, simplexDegree, "simplexDegree-"+ data)
 
 def executeKNN(data):
 
+    print('[+] Processing data')
     X_train, X_test, y_train, y_test = prepareData(data)
 
+    print('[+] Creating and trainning model')
     simplexDegree = sc.simplexClassificator('concentricity')
     knnHamming = KNeighborsClassifier(n_neighbors=5)
     knnHamming.fit(simplexDegree.one_hot_encode(X_train), y_train)
 
-    return getResults(knnHamming, X_test, y_test, True, simplexDegree)
+    print('[+] Validating model')
+    return getResults(knnHamming, X_test, y_test, True, simplexDegree, "KNN-"+ data)
 
 def executeTree(data):
 
+    print('[+] Processing data')
     X_train, X_test, y_train, y_test = prepareData(data)
 
+    print('[+] Creating and trainning model')
     simplexDegree = sc.simplexClassificator('concentricity')
     tree = DecisionTreeClassifier(random_state=0)
     tree.fit(simplexDegree.one_hot_encode(X_train), y_train)
 
-    return getResults(simplexDegree, X_test, y_test, True, simplexDegree)
+    print('[+] Validating model')
+    return getResults(simplexDegree, X_test, y_test, True, simplexDegree, "DecisionTree-"+ data)

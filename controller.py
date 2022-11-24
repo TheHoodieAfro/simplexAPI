@@ -19,9 +19,9 @@ def getRankings():
 def getRank(id):
     return jsonify(firebaseService.getRank(id))
 
-@app.route('/api/ranks', methods=['POST'])
-def createRank():
-    return jsonify(firebaseService.createRank(request.json))
+#@app.route('/api/ranks', methods=['POST'])
+#def createRank():
+#    return jsonify(firebaseService.createRank(request.json))
 
 # Models
 @app.route('/api/classificator/simplex', methods=['POST'])
@@ -30,7 +30,7 @@ def useSimplex():
     data = request.args.get('data')
     firebaseService.downloadData(data)
 
-    return jsonify(classificationService.executeSimplex(data))
+    return firebaseService.createRank(classificationService.executeSimplex(data))
 
 @app.route('/api/classificator/knn', methods=['POST'])
 def useKNN():
@@ -38,7 +38,7 @@ def useKNN():
     data = request.args.get('data')
     firebaseService.downloadData(data)
 
-    return jsonify(classificationService.executeKNN(data))
+    return firebaseService.createRank(classificationService.executeKNN(data))
 
 @app.route('/api/classificator/tree', methods=['POST'])
 def useTree():
@@ -46,7 +46,7 @@ def useTree():
     data = request.args.get('data')
     firebaseService.downloadData(data)
 
-    return jsonify(classificationService.executeTree(data))
+    return firebaseService.createRank(classificationService.executeTree(data))
 
 # ???????????????????????
 if __name__ == '__main__':
