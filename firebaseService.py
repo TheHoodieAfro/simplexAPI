@@ -41,7 +41,7 @@ def login(user):
 
     try:
         user = pauth.sign_in_with_email_and_password(user['email'], user['password'])
-        return {"token": user['idToken']}
+        return {"token": user['idToken'], "username": user["displayName"], "email": user["email"]}
     except Exception as e:
         return f"An Error Occurred: {e}"
     

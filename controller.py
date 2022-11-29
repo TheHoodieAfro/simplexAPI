@@ -3,9 +3,12 @@ import jwt
 
 from functools import wraps
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 
 # Application
 app = Flask(__name__)
+
+cors = CORS(app, resources={r"/api/*": {"origins": "*"}})
 
 app.config['SECRET_KEY'] = 'POGGERS'
 
